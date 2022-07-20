@@ -156,3 +156,5 @@ RUN git clone --branch SC22 https://github.com/ai2cm/fv3core.git &&\
 # # DaCe
 RUN git clone --branch FV3v2 --recursive https://github.com/spcl/dace.git &&\
     python -m pip install ./dace
+
+COPY runner.sh /runner.sh
