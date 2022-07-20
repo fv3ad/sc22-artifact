@@ -33,15 +33,18 @@ export DACE_frontend_verbose_errors=0
 
 export DACE_compiler_allow_view_arguments=1
 
-NAMELIST="${NAMELIST:-/c192_6ranks_baroclinic/}"
+NAMELIST="${NAMELIST:-/c12_6ranks_baroclinic/}"
 TIMESTEPS="${TIMESTEPS:-10}"
+
+CMD_MPI="mpirun --oversubscribe --allow-run-as-root -np 6"
 
 # Build the caches
 export FV3_DACEMODE="${FV3_DACEMODE:-Build}"
-python /fv3core/examples/standalone/runfile/dynamics.py \
+$CMD_MPI python /fv3core/examples/standalone/runfile/dynamics.py \
     $NAMELIST 0 gtc:dace:gpu build_run
 
 # Run performance simulation on warm caches
 export FV3_DACEMODE="Run"
-python /fv3core/examples/standalone/runfile/dynamics.py \
+$CMD_MPI python /fv3core/examples/standalone/runfile/dynamics.py \
     $NAMELIST $TIMESTEPS gtc:dace:gpu performance_run
+
