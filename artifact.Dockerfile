@@ -7,6 +7,10 @@ ENV USER=user
 ENV HOME=/home/user
 RUN mkdir -p /home/user
 
+# Fix invalid CUDA keys
+RUN rm /etc/apt/sources.list.d/cuda.list
+RUN rm /etc/apt/sources.list.d/nvidia-ml.list
+
 # GNU compiler
 RUN apt-get update -y && \
     apt install -y --no-install-recommends software-properties-common && \
@@ -26,18 +30,24 @@ RUN apt-get update -y && \
     gdb \
     strace \
     wget \
-    ca-certificates && \
+    ca-certificates \
+    openssh-client \
+    openssh-server && \
     rm -rf /var/lib/apt/lists/* && \
     apt-get clean
 
-RUN wget -q http://www.mpich.org/static/downloads/3.1.4/mpich-3.1.4.tar.gz  && \
-    tar xf mpich-3.1.4.tar.gz && \
-    cd mpich-3.1.4 && \
+# Install CUDA-aware OpenMPI
+RUN wget -q https://download.open-mpi.org/release/open-mpi/v4.1/openmpi-4.1.4.tar.gz && \
+    tar xf openmpi-4.1.4.tar.gz && \
+    cd openmpi-4.1.4 && \
     ./configure --disable-fortran --enable-fast=all,O3 --prefix=/usr/local --with-cuda=/usr/local/cuda && \
     make -j$(nproc) && \
     make install &&\
     ldconfig && \
-    rm ../mpich-3.1.4.tar.gz
+    rm ../openmpi-4.1.4.tar.gz
+
+# Install SSH for running MPI
+RUN apt-get install -y openssh-client openssh-server
 
 RUN mkdir -p /var/tmp && wget -q -nc --no-check-certificate -P /var/tmp http://mvapich.cse.ohio-state.edu/download/mvapich/osu-micro-benchmarks-5.7.tar.gz && \
     mkdir -p /var/tmp && tar -x -f /var/tmp/osu-micro-benchmarks-5.7.tar.gz -C /var/tmp -z && \
@@ -141,9 +151,19 @@ RUN python -m pip --no-cache-dir install \
 
 RUN LDFLAGS='-L /usr/local/cuda/lib64 -lcudart -lcuda' MPICC=mpicc pip install mpi4py
 
-# gt4py - no GridTools
+# Boost
+RUN wget -q https://boostorg.jfrog.io/artifactory/main/release/1.74.0/source/boost_1_74_0.tar.gz && \
+    tar xzf boost_1_74_0.tar.gz && \
+    rm -f boost_1_74_0.tar.gz && \
+    cd boost_1_74_0 && \
+    cp -r boost /usr/include/ && cd /
+ENV BOOST_HOME=/usr/include/boost
+ARG CPPFLAGS="-I${BOOST_HOME} -I${BOOST_HOME}/boost"
+
+# gt4py - with GridTools
 RUN git clone --branch SC22 https://github.com/gronerl/gt4py &&\
-    python -m pip install ./gt4py
+    python -m pip install ./gt4py &&\
+    git clone --depth 1 -b v2.1.0 https://github.com/GridTools/gridtools.git /usr/local/lib/python3.8/dist-packages/gt4py/_external_src/gridtools2
 
 # # fv3gfs-util
 RUN git clone --branch SC22 https://github.com/ai2cm/fv3gfs-util.git &&\
@@ -157,4 +177,10 @@ RUN git clone --branch SC22 https://github.com/ai2cm/fv3core.git &&\
 RUN git clone --branch FV3v2 --recursive https://github.com/spcl/dace.git &&\
     python -m pip install ./dace
 
+# Setup inputs and runner scripts
+ADD inputs /
 COPY runner.sh /runner.sh
+COPY runner_local.sh /runner_local.sh
+RUN chmod a+x /runner.sh
+RUN chmod a+x /runner_local.sh
+
