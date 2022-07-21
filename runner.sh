@@ -5,6 +5,7 @@ set -x
 
 export DACE_compiler_cuda_max_concurrent_streams=-1
 export PYTHONUNBUFFERED=1
+export PYTHONOPTIMIZE=TRUE
 export FV3_STENCIL_REBUILD_FLAG=False
 export DACE_compiler_cpu_openmp_sections=0
 
@@ -36,12 +37,22 @@ export DACE_compiler_allow_view_arguments=1
 NAMELIST="${NAMELIST:-/c192_6ranks_baroclinic/}"
 TIMESTEPS="${TIMESTEPS:-10}"
 
-# Build the caches
-export FV3_DACEMODE="${FV3_DACEMODE:-Build}"
-python /fv3core/examples/standalone/runfile/dynamics.py \
-    $NAMELIST 0 gtc:dace:gpu build_run
+# Go to home directory (which can be mounted externally)
+cd
 
-# Run performance simulation on warm caches
-export FV3_DACEMODE="Run"
-python /fv3core/examples/standalone/runfile/dynamics.py \
-    $NAMELIST $TIMESTEPS gtc:dace:gpu performance_run
+if [ "$FV3_DACEMODE" == "" ]; then
+    # Build the caches
+    export FV3_DACEMODE="Build"
+    python /fv3core/examples/standalone/runfile/dynamics.py \
+        $NAMELIST 0 gtc:dace:gpu build_run
+
+    # Run performance simulation on warm caches
+    export FV3_DACEMODE="Run"
+    python /fv3core/examples/standalone/runfile/dynamics.py \
+        $NAMELIST $TIMESTEPS gtc:dace:gpu performance_run
+else
+    # Custom run mode
+    python /fv3core/examples/standalone/runfile/dynamics.py \
+        $NAMELIST $TIMESTEPS gtc:dace:gpu performance_run
+fi
+
