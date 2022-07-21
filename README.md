@@ -8,7 +8,7 @@ There are two options to create the Docker container:
 
 Running the container requires Docker and the [NVIDIA Docker runtime](https://github.com/NVIDIA/nvidia-docker) in order to expose the GPU to the container.
 
-If you encounter a `missing libcuda.so` error or the GPU is not found, make sure you are running `nvidia-docker` or `docker --runtime=nvidia`.
+If you encounter a "missing libcuda.so" error or the GPU is not found, make sure you are running `nvidia-docker` or `docker --runtime=nvidia`.
 
 # Running 
 
@@ -25,8 +25,7 @@ module load sarus
 srun -N 6 sarus run --mpi tbennun/fv3-sc22:latest bash /runner.sh
 ```
 
-The input can be changed using the `NAMELIST` container environment variable. By default, it runs the 192x192 grid run (`c192_6ranks_baroclinic`). If you want to change this behavior,
-you can run the container with another value, e.g., `-eNAMELIST="/c3456_1944ranks_baroclinic/"`
+The input can be changed using the `NAMELIST` container environment variable. By default, it runs the 192x192 grid run (`c192_6ranks_baroclinic`). If you want to change this behavior, you can run the container with another value, e.g., `-eNAMELIST="/c3456_1944ranks_baroclinic/"`. The full list of input grids can be found in [inputs](inputs).
 
 The number of time-steps (`TIMESTEPS`) can similarly be changed with, for example, `-eTIMESTEPS=30`.
 
