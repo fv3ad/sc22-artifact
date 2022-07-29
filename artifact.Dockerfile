@@ -161,16 +161,16 @@ ENV BOOST_HOME=/usr/include/boost
 ARG CPPFLAGS="-I${BOOST_HOME} -I${BOOST_HOME}/boost"
 
 # gt4py - with GridTools
-RUN git clone --branch SC22 https://github.com/gronerl/gt4py &&\
+RUN git clone --branch sc22-v2 https://github.com/tbennun/gt4py  &&\
     python -m pip install ./gt4py &&\
     git clone --depth 1 -b v2.1.0 https://github.com/GridTools/gridtools.git /usr/local/lib/python3.8/dist-packages/gt4py/_external_src/gridtools2
 
 # # fv3gfs-util
-RUN git clone --branch SC22 https://github.com/ai2cm/fv3gfs-util.git &&\
+RUN git clone --branch sc-22-not-managed https://github.com/ai2cm/fv3gfs-util.git&&\
     python -m pip install ./fv3gfs-util
 
 # # fv3core
-RUN git clone --branch SC22 https://github.com/ai2cm/fv3core.git &&\
+RUN git clone --branch sc-22-not-managed https://github.com/ai2cm/fv3core.git&&\
     python -m pip install ./fv3core
 
 # # DaCe
